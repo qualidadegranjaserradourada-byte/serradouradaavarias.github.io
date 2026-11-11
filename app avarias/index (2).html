@@ -1,0 +1,596 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#BB600D">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Avarias de Ovos</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{
+  --bg:#FFFFFF; --card:#fff; --ink:#2A2118; --mut:#6F6355; --line:#E4DAC8;
+  --accent:#BB600D; --accent-d:#8F4A08; --tint:#FFF3E2;
+  --red:#B23A26; --redtint:#FBEAE6; --whitetint:#F4EEDF;
+  --ok:#2F7D4F; --err:#B3261E;
+  --r:14px;
+  /* Faixa livre no rodapé para o selo "Powered by Netlify". Se o selo sumir, troque 72px por 0px. */
+  --badge:72px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding-bottom:calc(96px + var(--badge) + env(safe-area-inset-bottom))}
+body::after{content:'';position:fixed;left:0;right:0;bottom:0;height:var(--badge);background:#fff;z-index:29;pointer-events:none}
+header{background:#BB600D;color:#fff;padding:calc(8px + env(safe-area-inset-top)) 14px 8px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+header img{display:block;height:74px;width:auto;max-width:62%;object-fit:contain}
+.titulo{max-width:640px;margin:14px auto 0;padding:0 16px;font-size:20px;font-weight:700}
+.titulo small{display:block;font-size:13px;font-weight:400;color:var(--mut)}
+.stat{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.pill{border:0;background:rgba(255,255,255,.2);color:#fff;border-radius:99px;padding:7px 12px;font-weight:600;font-size:13px;line-height:1.2;font-family:inherit;white-space:nowrap}
+.pill.off{background:#3a2a18}
+.pill.pend{background:#fff;color:var(--accent-d)}
+main{padding:14px 14px 8px;max-width:640px;margin:0 auto}
+.banner{background:#FDECEA;color:var(--err);border:1px solid #F3C4BF;border-radius:var(--r);padding:12px 14px;margin-bottom:12px;font-size:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:14px}
+h2{font-size:13px;letter-spacing:.8px;text-transform:uppercase;color:var(--mut);margin:18px 2px 8px;font-weight:700}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.f{display:block;margin-bottom:12px}
+.f:last-child{margin-bottom:0}
+.grid .f{margin-bottom:0}
+.f>span{display:block;font-size:13px;font-weight:600;color:var(--mut);margin-bottom:5px}
+.f>span b{color:var(--err)}
+input[type=text],input[type=date],select,textarea{width:100%;font:inherit;font-size:16px;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:12px;min-height:48px;appearance:none;-webkit-appearance:none}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%236F6355' stroke-width='2'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:38px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(184,98,14,.18)}
+.err-f input,.err-f select{border-color:var(--err)}
+.msg{color:var(--err);font-size:13px;margin-top:6px;font-weight:600}
+#placa{text-transform:uppercase;letter-spacing:1.5px;font-weight:700}
+.hide{display:none!important}
+
+.cli{background:var(--card);border:1.5px solid var(--line);border-radius:var(--r);margin-bottom:14px;overflow:hidden}
+.cli.err{border-color:var(--err)}
+.cli-h{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 14px;background:var(--tint);border-bottom:1px solid var(--line)}
+.cli-h strong{font-size:17px;word-break:break-word}
+.cli-n{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-size:13px;font-weight:700;margin-right:9px;vertical-align:1px}
+.ic{border:0;background:#fff;border:1px solid var(--line);color:var(--err);width:44px;height:44px;border-radius:10px;font-size:18px;flex:none}
+.cli-b{padding:14px}
+.cor{border:1px solid var(--line);border-radius:12px;margin:12px 0;overflow:hidden}
+.cor-h{display:flex;align-items:center;gap:8px;padding:9px 12px;font-weight:700;font-size:15px}
+.cor-h i{width:16px;height:16px;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;display:inline-block;border:1.5px solid rgba(0,0,0,.25)}
+.cor-h em{margin-left:auto;font-style:normal;font-weight:600;font-size:13px;color:var(--mut)}
+.cor.Branco .cor-h{background:var(--whitetint)} .cor.Branco .cor-h i{background:#FBF8F0}
+.cor.Vermelho .cor-h{background:var(--redtint)} .cor.Vermelho .cor-h i{background:#B5472D}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;border-top:1px solid var(--line)}
+.row.on{background:#FFFBF2}
+.row .l b{display:block;font-size:16px}
+.row .l small{color:var(--mut);font-size:12px}
+.step{display:flex;align-items:center;gap:6px}
+.step button{width:48px;height:48px;border-radius:12px;border:1.5px solid var(--line);background:#fff;font-size:26px;line-height:1;color:var(--accent-d);font-weight:600;touch-action:manipulation}
+.step button:active{background:var(--tint)}
+.step button.plus{background:var(--accent);border-color:var(--accent);color:#fff}
+.step input{width:64px;min-height:48px;text-align:center;font-size:21px;font-weight:700;padding:6px 2px;border-radius:12px}
+.sub{display:flex;justify-content:space-between;align-items:center;font-weight:700;padding-top:2px}
+.sub span:last-child{color:var(--accent-d)}
+details.obs summary{color:var(--accent-d);font-weight:600;font-size:14px;padding:8px 0;cursor:pointer;list-style:none}
+details.obs summary::-webkit-details-marker{display:none}
+textarea{min-height:70px;resize:vertical}
+
+.add{width:100%;min-height:64px;border:2px dashed var(--accent);background:var(--tint);color:var(--accent-d);border-radius:var(--r);font-weight:700;font-size:17px;line-height:1.2;font-family:inherit}
+.add:active{background:#FFE7C6}
+.vazio{text-align:center;color:var(--mut);padding:18px 10px 4px;font-size:15px}
+
+.bar{position:fixed;left:0;right:0;bottom:var(--badge);z-index:30;background:#fff;border-top:1px solid var(--line);padding:10px 14px 10px;display:flex;align-items:center;gap:12px;box-shadow:0 -4px 14px rgba(0,0,0,.06)}
+.bar .tot{flex:1;min-width:0;line-height:1.15}
+.bar .tot b{font-size:26px}
+.bar .tot small{display:block;color:var(--mut);font-size:12px}
+.btn{border:0;border-radius:12px;padding:0 22px;min-height:54px;font-weight:700;font-size:17px;line-height:1.2;font-family:inherit;color:#fff;background:var(--accent);touch-action:manipulation}
+.btn:active{background:var(--accent-d)}
+.btn.sec{background:#fff;color:var(--ink);border:1.5px solid var(--line)}
+.btn.ok{background:var(--ok)}
+.btn[disabled]{opacity:.55}
+
+.ov{position:fixed;inset:0;background:rgba(30,20,10,.5);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:#fff;width:100%;max-width:640px;max-height:88vh;border-radius:20px 20px 0 0;display:flex;flex-direction:column;padding-bottom:calc(env(safe-area-inset-bottom) + var(--badge))}
+.sheet-h{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px}
+.sheet-h h3{margin:0;font-size:18px}
+.sheet-b{padding:4px 16px 16px;overflow:auto}
+.lst{margin-top:10px;display:flex;flex-direction:column;gap:8px}
+.opt{display:block;width:100%;text-align:left;border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:14px;font-weight:600;font-size:16px;line-height:1.2;font-family:inherit;min-height:52px;color:var(--ink)}
+.opt:active{background:var(--tint)}
+.opt.new{border-color:var(--accent);background:var(--tint);color:var(--accent-d)}
+.vazio-l{color:var(--mut);padding:10px 2px;font-size:14px}
+.rs{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:10px}
+.rs b{display:block;margin-bottom:3px}
+.rs div{font-size:14px;color:var(--mut)}
+.rs div strong{color:var(--ink)}
+.acts{display:flex;gap:10px;margin-top:14px}
+.acts .btn{flex:1}
+.done{text-align:center;padding:26px 18px 20px}
+.done .big{font-size:54px;line-height:1}
+.done h3{margin:10px 0 6px;font-size:21px}
+.done p{margin:0 0 18px;color:var(--mut)}
+.pe{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:10px;font-size:14px}
+.pe .er{color:var(--err);font-weight:600;margin-top:4px}
+.toast{position:fixed;left:50%;bottom:calc(100px + var(--badge) + env(safe-area-inset-bottom));transform:translateX(-50%);background:#2A2118;color:#fff;padding:11px 16px;border-radius:12px;z-index:60;font-size:14px;max-width:90%;text-align:center}
+</style>
+</head>
+<body>
+
+<header>
+  <img src="logo.png" alt="Granja Serra Dourada">
+  <div class="stat">
+    <button class="pill hide pend" id="pillPend"></button>
+    <span class="pill" id="pillNet">● Online</span>
+  </div>
+</header>
+<div class="titulo">Avarias de Ovos<small>Registro de devolução por cliente</small></div>
+
+<main>
+  <div class="banner hide" id="bannerApi"></div>
+
+  <h2>Viagem</h2>
+  <section class="card">
+    <div class="grid" style="margin-bottom:12px">
+      <label class="f" id="fData"><span>Data <b>*</b></span><input type="date" id="data"></label>
+      <label class="f" id="fPlaca"><span>Placa do caminhão <b>*</b></span><input type="text" id="placa" maxlength="8" autocomplete="off" autocapitalize="characters" placeholder="ABC1D23"></label>
+    </div>
+    <label class="f" id="fMot"><span>Motorista <b>*</b></span>
+      <select id="motSel"></select>
+      <input type="text" id="motNovo" class="hide" style="margin-top:8px" placeholder="Digite o nome do motorista" autocomplete="off">
+    </label>
+    <label class="f"><span>Carga / NF <small style="font-weight:400">(opcional)</small></span><input type="text" id="carga" maxlength="40" autocomplete="off" placeholder="Nº da carga ou nota"></label>
+  </section>
+
+  <h2>Clientes com devolução</h2>
+  <div id="clientes"></div>
+  <div class="vazio" id="vazio">Toque no botão abaixo para adicionar o primeiro cliente.</div>
+  <button class="add" id="btnAdd" style="margin-top:12px">＋ Adicionar cliente</button>
+  <div class="msg hide" id="msgGeral" style="text-align:center;margin-top:12px"></div>
+</main>
+
+<div class="bar">
+  <div class="tot"><b id="tOvos">0</b> ovos<small id="tInfo">0 embalagens · 0 clientes</small></div>
+  <button class="btn" id="btnEnviar">Enviar</button>
+</div>
+
+<!-- Escolher / cadastrar cliente -->
+<div class="ov hide" id="ovCli">
+  <div class="sheet">
+    <div class="sheet-h"><h3>Escolher cliente</h3><button class="ic" id="fechaCli" style="color:var(--ink)">✕</button></div>
+    <div class="sheet-b">
+      <input type="text" id="buscaCli" placeholder="Buscar ou digitar o nome do cliente" autocomplete="off">
+      <div class="lst" id="listaCli"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Confirmar envio -->
+<div class="ov hide" id="ovConf">
+  <div class="sheet">
+    <div class="sheet-h"><h3>Conferir antes de enviar</h3></div>
+    <div class="sheet-b">
+      <div id="resumo"></div>
+      <div class="acts"><button class="btn sec" id="confVolta">Voltar</button><button class="btn ok" id="confOk">Confirmar envio</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- Resultado -->
+<div class="ov hide" id="ovDone">
+  <div class="sheet"><div class="done">
+    <div class="big" id="doneIco">✅</div>
+    <h3 id="doneTit"></h3><p id="doneTxt"></p>
+    <button class="btn" id="doneOk" style="width:100%">Novo registro</button>
+  </div></div>
+</div>
+
+<!-- Pendentes -->
+<div class="ov hide" id="ovPend">
+  <div class="sheet">
+    <div class="sheet-h"><h3>Envios pendentes</h3><button class="ic" id="fechaPend" style="color:var(--ink)">✕</button></div>
+    <div class="sheet-b">
+      <p style="margin:0 0 10px;color:var(--mut);font-size:14px">Estes registros estão salvos no celular e serão enviados quando houver internet.</p>
+      <div id="listaPend"></div>
+      <div class="acts"><button class="btn" id="tentarAgora">Tentar enviar agora</button></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ======================================================================
+   CONFIGURAÇÃO — cole aqui o link do Apps Script (veja o guia):
+   Exemplo: "https://script.google.com/macros/s/AKfycb.../exec"
+   ====================================================================== */
+const API_URL = "https://script.google.com/macros/s/AKfycbyHxI8IMhWseIut2KG6W5tvBx5hF8YB9bBBVnvTfWRzKnigiUO8jBDrDItpQufkHiE94g/exec";
+
+const EMBALAGENS = [
+  {nome:'Cartela 30', ovos:30},
+  {nome:'Cartela 20', ovos:20},
+  {nome:'Estojo 12',  ovos:12},
+  {nome:'Estojo 6',   ovos:6}
+];
+const CORES = [
+  {nome:'Branco',   titulo:'Ovo branco'},
+  {nome:'Vermelho', titulo:'Ovo vermelho'}
+];
+const MOTIVOS_PADRAO = ['Quebrado','Trincado','Sujo','Vencido','Recusa do cliente','Erro de pedido','Outro'];
+const OVOS = {}; EMBALAGENS.forEach(e=>OVOS[e.nome]=e.ovos);
+
+/* ---------- utilidades ---------- */
+const $ = s=>document.querySelector(s);
+const store = {
+  get(k,d){ try{ const v=localStorage.getItem(k); return v==null?d:JSON.parse(v);}catch(e){return d;} },
+  set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+};
+const clean = s=>String(s==null?'':s).replace(/\s+/g,' ').trim();
+const norm = s=>clean(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+const esc = s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n=>String(n).padStart(2,'0');
+const hoje = ()=>{const d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());};
+const fmtN = n=>n.toLocaleString('pt-BR');
+const uid = ()=>Math.random().toString(36).slice(2,9);
+const qk = (cor,emb)=>cor+'|'+emb;
+const placaLimpa = s=>String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+const apiOk = ()=>API_URL && /^https:\/\/script\.google\.com\//.test(API_URL);
+
+function toast(msg,ms){
+  const t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t);
+  setTimeout(()=>t.remove(), ms||2600);
+}
+
+/* ---------- estado ---------- */
+let listas = store.get('listas',{motoristas:[],clientes:[],motivos:MOTIVOS_PADRAO});
+let extras = store.get('extras',{motoristas:[],clientes:[]});   // nomes digitados no celular
+const perfil = store.get('perfil',{motorista:'',placa:''});
+let S = store.get('rascunho',null);
+function novoEstado(){ return {data:hoje(), motorista:perfil.motorista||'', placa:perfil.placa||'', carga:'', clientes:[]}; }
+if(!S || typeof S!=='object' || !Array.isArray(S.clientes)) S = novoEstado();
+if(!S.data) S.data = hoje();
+function salva(){ store.set('rascunho',S); }
+
+function listaMot(){ return uniq([...(listas.motoristas||[]), ...(extras.motoristas||[]), S.motorista].filter(Boolean)).sort((a,b)=>a.localeCompare(b,'pt-BR')); }
+function listaCli(){ return uniq([...(listas.clientes||[]), ...(extras.clientes||[])].filter(Boolean)).sort((a,b)=>a.localeCompare(b,'pt-BR')); }
+function listaMotivos(){ return (listas.motivos&&listas.motivos.length)?listas.motivos:MOTIVOS_PADRAO; }
+function uniq(arr){ const seen=new Set(), out=[]; arr.forEach(v=>{const k=norm(v); if(!seen.has(k)){seen.add(k);out.push(v);}}); return out; }
+function canonico(lista,nome){ const k=norm(nome); return lista.find(v=>norm(v)===k) || clean(nome); }
+
+/* ---------- viagem (data, motorista, placa, carga) ---------- */
+function montaMotoristas(){
+  const sel=$('#motSel'), lista=listaMot();
+  sel.innerHTML = '<option value="">Selecione o motorista…</option>' +
+    lista.map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join('') +
+    '<option value="__novo">＋ Digitar outro nome…</option>';
+  sel.value = (S.motorista && lista.some(m=>m===S.motorista)) ? S.motorista : '';
+}
+$('#data').max = hoje();
+$('#data').value = S.data;
+$('#placa').value = S.placa;
+$('#carga').value = S.carga;
+$('#data').addEventListener('change',e=>{S.data=e.target.value;salva();limpaErroCampo('fData');});
+$('#placa').addEventListener('input',e=>{ e.target.value=e.target.value.toUpperCase().replace(/[^A-Za-z0-9-]/g,''); S.placa=e.target.value; salva(); limpaErroCampo('fPlaca');});
+$('#carga').addEventListener('input',e=>{S.carga=e.target.value;salva();});
+$('#motSel').addEventListener('change',e=>{
+  limpaErroCampo('fMot');
+  if(e.target.value==='__novo'){ $('#motNovo').classList.remove('hide'); $('#motNovo').focus(); S.motorista=''; }
+  else { $('#motNovo').classList.add('hide'); S.motorista=e.target.value; }
+  salva();
+});
+$('#motNovo').addEventListener('input',e=>{ S.motorista=clean(e.target.value); salva(); limpaErroCampo('fMot'); });
+$('#motNovo').addEventListener('blur',e=>{
+  const n=canonico(listaMot(), e.target.value);
+  if(!n) return;
+  S.motorista=n;
+  extras.motoristas=uniq([...(extras.motoristas||[]),n]); store.set('extras',extras);
+  salva(); montaMotoristas(); $('#motSel').value=n; $('#motNovo').classList.add('hide'); $('#motNovo').value='';
+});
+
+/* ---------- clientes ---------- */
+function novoCliente(nome){
+  const q={}; CORES.forEach(c=>EMBALAGENS.forEach(e=>q[qk(c.nome,e.nome)]=0));
+  return {uid:uid(), nome:nome, motivo:'', obs:'', q:q};
+}
+function rowHTML(c,cor,e){
+  const k=qk(cor.nome,e.nome), v=c.q[k]||0;
+  return `<div class="row ${v>0?'on':''}" data-row="${esc(k)}">
+    <div class="l"><b>${esc(e.nome)}</b><small>${e.ovos} ovos cada</small></div>
+    <div class="step">
+      <button type="button" data-act="dec" data-k="${esc(k)}" aria-label="Diminuir ${esc(e.nome)}">−</button>
+      <input class="q" type="text" inputmode="numeric" pattern="[0-9]*" value="${v}" data-k="${esc(k)}" aria-label="Quantidade de ${esc(e.nome)} ${cor.titulo}">
+      <button type="button" class="plus" data-act="inc" data-k="${esc(k)}" aria-label="Aumentar ${esc(e.nome)}">+</button>
+    </div></div>`;
+}
+function cardHTML(c,i){
+  const mot=listaMotivos();
+  const opts='<option value="">Selecione o motivo…</option>'+mot.map(m=>`<option value="${esc(m)}" ${m===c.motivo?'selected':''}>${esc(m)}</option>`).join('');
+  return `<article class="cli" data-uid="${c.uid}">
+    <div class="cli-h"><div><span class="cli-n">${i+1}</span><strong>${esc(c.nome)}</strong></div>
+      <button type="button" class="ic" data-act="rm" aria-label="Remover cliente">✕</button></div>
+    <div class="cli-b">
+      <label class="f" data-fmot><span>Motivo da devolução <b>*</b></span><select data-f="motivo">${opts}</select></label>
+      ${CORES.map(cor=>`<div class="cor ${cor.nome}"><div class="cor-h"><i></i>${cor.titulo}<em data-sub="${cor.nome}"></em></div>${EMBALAGENS.map(e=>rowHTML(c,cor,e)).join('')}</div>`).join('')}
+      <details class="obs" ${c.obs?'open':''}><summary>＋ Observação (opcional)</summary><textarea data-f="obs" maxlength="300" placeholder="Ex.: caíram na descarga">${esc(c.obs)}</textarea></details>
+      <div class="sub"><span>Total deste cliente</span><span data-tot>0 ovos</span></div>
+      <div class="msg hide" data-msg></div>
+    </div></article>`;
+}
+function render(){
+  const box=$('#clientes');
+  box.innerHTML=S.clientes.map(cardHTML).join('');
+  $('#vazio').classList.toggle('hide',S.clientes.length>0);
+  $('#btnAdd').textContent = S.clientes.length ? '＋ Adicionar outro cliente' : '＋ Adicionar cliente';
+  totais();
+}
+function totCli(c){
+  const t={ovos:0,emb:0,cor:{}};
+  CORES.forEach(cor=>{t.cor[cor.nome]=0;EMBALAGENS.forEach(e=>{const v=c.q[qk(cor.nome,e.nome)]||0; t.ovos+=v*e.ovos; t.emb+=v; t.cor[cor.nome]+=v*e.ovos;});});
+  return t;
+}
+function totais(){
+  let ovos=0, emb=0, n=0;
+  S.clientes.forEach(c=>{
+    const t=totCli(c); ovos+=t.ovos; emb+=t.emb; if(t.emb>0) n++;
+    const el=document.querySelector(`[data-uid="${c.uid}"]`);
+    if(el){
+      el.querySelector('[data-tot]').textContent=fmtN(t.ovos)+' ovos';
+      CORES.forEach(cor=>{ const s=el.querySelector(`[data-sub="${cor.nome}"]`); s.textContent=t.cor[cor.nome]?fmtN(t.cor[cor.nome])+' ovos':''; });
+    }
+  });
+  $('#tOvos').textContent=fmtN(ovos);
+  $('#tInfo').textContent=`${fmtN(emb)} embalagen${emb===1?'':'s'} · ${S.clientes.length} cliente${S.clientes.length===1?'':'s'}`;
+}
+function setQ(card,k,v){
+  const c=S.clientes.find(x=>x.uid===card.dataset.uid); if(!c) return;
+  v=Math.max(0,Math.min(9999,v|0)); c.q[k]=v;
+  const row=card.querySelector(`[data-row="${CSS.escape(k)}"]`);
+  const inp=row.querySelector('input.q'); if(document.activeElement!==inp || inp.value!==String(v)) inp.value=v;
+  row.classList.toggle('on',v>0);
+  card.classList.remove('err'); const m=card.querySelector('[data-msg]'); m.classList.add('hide');
+  $('#msgGeral').classList.add('hide');
+  salva(); totais();
+}
+const boxCli=$('#clientes');
+boxCli.addEventListener('click',e=>{
+  const b=e.target.closest('button[data-act]'); if(!b) return;
+  const card=b.closest('.cli'), act=b.dataset.act;
+  if(act==='rm'){
+    const c=S.clientes.find(x=>x.uid===card.dataset.uid);
+    const t=totCli(c);
+    if(t.emb>0 && !confirm('Remover '+c.nome+' e as quantidades já preenchidas?')) return;
+    S.clientes=S.clientes.filter(x=>x!==c); salva(); render(); return;
+  }
+  const k=b.dataset.k, c=S.clientes.find(x=>x.uid===card.dataset.uid);
+  setQ(card,k,(c.q[k]||0)+(act==='inc'?1:-1));
+  if(navigator.vibrate) try{navigator.vibrate(8);}catch(_){}
+});
+boxCli.addEventListener('input',e=>{
+  const card=e.target.closest('.cli'); if(!card) return;
+  const c=S.clientes.find(x=>x.uid===card.dataset.uid);
+  if(e.target.matches('input.q')){
+    const dig=e.target.value.replace(/\D/g,'').slice(0,4);
+    e.target.value=dig; setQ(card,e.target.dataset.k, dig===''?0:parseInt(dig,10));
+  } else if(e.target.dataset.f==='obs'){ c.obs=e.target.value; salva(); }
+});
+boxCli.addEventListener('change',e=>{
+  const card=e.target.closest('.cli'); if(!card) return;
+  const c=S.clientes.find(x=>x.uid===card.dataset.uid);
+  if(e.target.dataset.f==='motivo'){ c.motivo=e.target.value; card.classList.remove('err'); card.querySelector('[data-msg]').classList.add('hide'); salva(); }
+});
+boxCli.addEventListener('focusin',e=>{ if(e.target.matches('input.q')) setTimeout(()=>{try{e.target.select();}catch(_){}} ,0); });
+boxCli.addEventListener('focusout',e=>{ if(e.target.matches('input.q') && e.target.value==='') e.target.value='0'; });
+
+/* ---------- escolher cliente ---------- */
+function abreCli(){ $('#ovCli').classList.remove('hide'); $('#buscaCli').value=''; listaClientes(''); setTimeout(()=>$('#buscaCli').focus(),50); }
+function fechaCli(){ $('#ovCli').classList.add('hide'); }
+function listaClientes(q){
+  const nq=norm(q), todos=listaCli();
+  const f=nq?todos.filter(n=>norm(n).includes(nq)):todos;
+  let h=f.map(n=>`<button type="button" class="opt" data-nome="${esc(n)}">${esc(n)}</button>`).join('');
+  const exato=todos.some(n=>norm(n)===nq);
+  if(clean(q) && !exato) h=`<button type="button" class="opt new" data-novo="${esc(clean(q))}">＋ Cadastrar novo cliente: “${esc(clean(q))}”</button>`+h;
+  if(!h) h='<div class="vazio-l">Nenhum cliente cadastrado ainda. Digite o nome acima para cadastrar.</div>';
+  $('#listaCli').innerHTML=h;
+}
+function addCliente(nome){
+  nome=canonico(listaCli(),nome);
+  if(!listaCli().some(n=>norm(n)===norm(nome))){ extras.clientes=uniq([...(extras.clientes||[]),nome]); store.set('extras',extras); }
+  S.clientes.push(novoCliente(nome)); salva(); render(); fechaCli();
+  const last=boxCli.lastElementChild; if(last) setTimeout(()=>last.scrollIntoView({behavior:'smooth',block:'start'}),60);
+}
+$('#btnAdd').addEventListener('click',abreCli);
+$('#fechaCli').addEventListener('click',fechaCli);
+$('#ovCli').addEventListener('click',e=>{ if(e.target.id==='ovCli') fechaCli(); });
+$('#buscaCli').addEventListener('input',e=>listaClientes(e.target.value));
+$('#buscaCli').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); const v=clean(e.target.value); if(v) addCliente(v); }});
+$('#listaCli').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  addCliente(b.dataset.novo||b.dataset.nome);
+});
+
+/* ---------- validação e envio ---------- */
+function limpaErroCampo(id){ const f=document.getElementById(id); if(f){ f.classList.remove('err-f'); const m=f.querySelector('.msg'); if(m) m.remove(); } }
+function erroCampo(id,txt){
+  limpaErroCampo(id); const f=document.getElementById(id); f.classList.add('err-f');
+  const m=document.createElement('div'); m.className='msg'; m.textContent=txt; f.appendChild(m); return f;
+}
+function valida(){
+  ['fData','fPlaca','fMot'].forEach(limpaErroCampo);
+  document.querySelectorAll('.cli').forEach(c=>{c.classList.remove('err'); c.querySelector('[data-msg]').classList.add('hide');});
+  $('#msgGeral').classList.add('hide');
+  let first=null; const set=el=>{ if(!first) first=el; };
+  if(!S.data) set(erroCampo('fData','Informe a data.'));
+  if(placaLimpa(S.placa).length<6) set(erroCampo('fPlaca','Informe a placa.'));
+  if(!clean(S.motorista)) set(erroCampo('fMot','Escolha ou digite o motorista.'));
+  if(!S.clientes.length){ const m=$('#msgGeral'); m.textContent='Adicione pelo menos um cliente.'; m.classList.remove('hide'); set(m); }
+  S.clientes.forEach(c=>{
+    const t=totCli(c), el=document.querySelector(`[data-uid="${c.uid}"]`), msg=el.querySelector('[data-msg]');
+    let txt='';
+    if(!c.motivo) txt='Escolha o motivo da devolução.';
+    else if(t.emb===0) txt='Informe a quantidade de pelo menos uma embalagem.';
+    if(txt){ el.classList.add('err'); msg.textContent=txt; msg.classList.remove('hide'); set(el); }
+  });
+  if(first){ first.scrollIntoView({behavior:'smooth',block:'center'}); return false; }
+  return true;
+}
+function montaPayload(){
+  return {
+    id:'AV-'+Date.now().toString(36).toUpperCase()+'-'+uid().toUpperCase().slice(0,4),
+    criadoEm:new Date().toISOString(),
+    data:S.data, motorista:clean(S.motorista), placa:placaLimpa(S.placa), carga:clean(S.carga),
+    clientes:S.clientes.map(c=>({
+      nome:c.nome, motivo:c.motivo, obs:clean(c.obs),
+      itens:CORES.flatMap(cor=>EMBALAGENS.map(e=>({cor:cor.nome,emb:e.nome,qtd:c.q[qk(cor.nome,e.nome)]||0}))).filter(i=>i.qtd>0)
+    }))
+  };
+}
+function resumoHTML(p){
+  let tot=0;
+  const h=p.clientes.map(c=>{
+    const por={}; c.itens.forEach(i=>{ (por[i.cor]=por[i.cor]||[]).push(`<strong>${i.qtd}</strong> ${esc(i.emb)}`); tot+=i.qtd*OVOS[i.emb]; });
+    return `<div class="rs"><b>${esc(c.nome)} <span style="font-weight:400;color:var(--mut)">· ${esc(c.motivo)}</span></b>`+
+      CORES.filter(co=>por[co.nome]).map(co=>`<div>${co.titulo}: ${por[co.nome].join(' · ')}</div>`).join('')+`</div>`;
+  }).join('');
+  const d=p.data.split('-').reverse().join('/');
+  return `<div class="rs" style="background:var(--tint)"><b>${esc(p.motorista)} · ${esc(p.placa)}</b><div>${d}${p.carga?' · Carga/NF '+esc(p.carga):''}</div></div>${h}`+
+    `<div class="sub" style="margin:4px 2px 0"><span>Total de ovos</span><span>${fmtN(tot)}</span></div>`;
+}
+$('#btnEnviar').addEventListener('click',()=>{
+  if(!valida()) return;
+  $('#resumo').innerHTML=resumoHTML(montaPayload());
+  $('#ovConf').classList.remove('hide');
+});
+$('#confVolta').addEventListener('click',()=>$('#ovConf').classList.add('hide'));
+$('#confOk').addEventListener('click',async()=>{
+  const btn=$('#confOk'); btn.disabled=true;
+  const p=montaPayload();
+  const fila=store.get('fila',[]); fila.push(p); store.set('fila',fila);
+  // memoriza motorista/placa para o próximo registro
+  perfil.motorista=p.motorista; perfil.placa=p.placa; store.set('perfil',perfil);
+  extras.motoristas=uniq([...(extras.motoristas||[]),p.motorista]); store.set('extras',extras);
+  const manter={motorista:S.motorista,placa:S.placa};
+  S=novoEstado(); S.motorista=manter.motorista; S.placa=manter.placa; salva();
+  $('#ovConf').classList.add('hide');
+  const r=await enviarFila(p.id);
+  btn.disabled=false;
+  mostraResultado(r);
+});
+function mostraResultado(r){
+  if(r==='ok'){ $('#doneIco').textContent='✅'; $('#doneTit').textContent='Enviado para a planilha!'; $('#doneTxt').textContent='O registro foi gravado com sucesso.'; }
+  else if(r==='codigo'){ $('#doneIco').textContent='🔒'; $('#doneTit').textContent='Código de acesso incorreto'; $('#doneTxt').textContent='O registro ficou salvo no celular. Toque no aviso de pendentes para tentar de novo.'; }
+  else if(r==='erro'){ $('#doneIco').textContent='⚠️'; $('#doneTit').textContent='Registro salvo, mas não aceito'; $('#doneTxt').textContent='A planilha recusou este envio. Toque em “pendentes” (topo) para ver o motivo.'; }
+  else { $('#doneIco').textContent='📥'; $('#doneTit').textContent='Salvo no celular'; $('#doneTxt').textContent='Sem conexão agora. O envio será feito automaticamente quando houver internet. Não precisa preencher de novo.'; }
+  $('#ovDone').classList.remove('hide');
+}
+$('#doneOk').addEventListener('click',()=>{ $('#ovDone').classList.add('hide'); montaTudo(); window.scrollTo({top:0,behavior:'smooth'}); });
+
+/* ---------- comunicação com a planilha ---------- */
+async function chamada(url,opts){
+  const ctl=new AbortController(); const t=setTimeout(()=>ctl.abort(),30000);
+  try{ const r=await fetch(url,Object.assign({signal:ctl.signal,redirect:'follow'},opts||{})); return await r.json(); }
+  finally{ clearTimeout(t); }
+}
+function codigoQS(){ const c=store.get('codigo',''); return c?('&codigo='+encodeURIComponent(c)):''; }
+async function carregarListas(){
+  if(!apiOk()||!navigator.onLine) return;
+  try{
+    const r=await chamada(API_URL+'?acao=listas'+codigoQS());
+    if(r&&r.ok){
+      listas={motoristas:r.motoristas||[],clientes:r.clientes||[],motivos:(r.motivos&&r.motivos.length)?r.motivos:MOTIVOS_PADRAO};
+      store.set('listas',listas);
+      // remove dos "extras" o que já está na planilha
+      extras.motoristas=(extras.motoristas||[]).filter(n=>!listas.motoristas.some(m=>norm(m)===norm(n)));
+      extras.clientes=(extras.clientes||[]).filter(n=>!listas.clientes.some(m=>norm(m)===norm(n)));
+      store.set('extras',extras);
+      montaMotoristas(); atualizaMotivos();
+    } else if(r&&r.erro==='codigo'){ pedeCodigo(); }
+  }catch(e){}
+}
+function atualizaMotivos(){
+  const mot=listaMotivos();
+  document.querySelectorAll('.cli').forEach(el=>{
+    const c=S.clientes.find(x=>x.uid===el.dataset.uid); if(!c) return;
+    el.querySelector('select[data-f="motivo"]').innerHTML='<option value="">Selecione o motivo…</option>'+mot.map(m=>`<option value="${esc(m)}" ${m===c.motivo?'selected':''}>${esc(m)}</option>`).join('');
+  });
+}
+function pedeCodigo(){
+  const c=prompt('Digite o código de acesso do app:');
+  if(c){ store.set('codigo',c.trim()); carregarListas(); enviarFila(); }
+}
+let enviando=false;
+async function enviarFila(idAlvo){
+  if(enviando) return idAlvo?'fila':null;
+  if(!apiOk()||!navigator.onLine){ atualizaStatus(); return idAlvo?'fila':null; }
+  enviando=true; let resultadoAlvo=idAlvo?'fila':null;
+  try{
+    let fila=store.get('fila',[]);
+    for(const item of fila.slice()){
+      let r;
+      try{
+        r=await chamada(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({},item,{codigo:store.get('codigo','')}))});
+      }catch(e){ break; }   // sem rede: tenta depois
+      if(r&&r.ok){
+        fila=store.get('fila',[]).filter(x=>x.id!==item.id); store.set('fila',fila);
+        if(item.id===idAlvo) resultadoAlvo='ok';
+      } else if(r&&r.erro==='codigo'){
+        if(item.id===idAlvo) resultadoAlvo='codigo';
+        pedeCodigo(); break;
+      } else {
+        const f2=store.get('fila',[]); const it=f2.find(x=>x.id===item.id); if(it){ it.erroMsg=(r&&r.erro)||'Erro desconhecido'; store.set('fila',f2); }
+        if(item.id===idAlvo) resultadoAlvo='erro';
+      }
+    }
+  } finally { enviando=false; atualizaStatus(); }
+  if(resultadoAlvo==='ok') carregarListas();
+  return resultadoAlvo;
+}
+
+/* ---------- status / pendentes ---------- */
+function atualizaStatus(){
+  const on=navigator.onLine, n=store.get('fila',[]).length;
+  const pn=$('#pillNet'); pn.textContent=on?'● Online':'● Sem internet'; pn.classList.toggle('off',!on);
+  const pp=$('#pillPend'); pp.classList.toggle('hide',n===0); pp.textContent=n+' pendente'+(n===1?'':'s');
+}
+$('#pillPend').addEventListener('click',()=>{ listaPendentes(); $('#ovPend').classList.remove('hide'); });
+$('#fechaPend').addEventListener('click',()=>$('#ovPend').classList.add('hide'));
+$('#tentarAgora').addEventListener('click',async()=>{
+  const b=$('#tentarAgora'); b.disabled=true; await enviarFila(); b.disabled=false; listaPendentes();
+  if(!store.get('fila',[]).length){ $('#ovPend').classList.add('hide'); toast('Tudo enviado ✔'); }
+});
+function listaPendentes(){
+  const fila=store.get('fila',[]);
+  $('#listaPend').innerHTML=fila.length?fila.map(p=>{
+    const n=p.clientes.reduce((a,c)=>a+c.itens.reduce((s,i)=>s+i.qtd*OVOS[i.emb],0),0);
+    return `<div class="pe"><b>${p.data.split('-').reverse().join('/')} · ${esc(p.placa)} · ${esc(p.motorista)}</b><br>${p.clientes.map(c=>esc(c.nome)).join(', ')} — ${fmtN(n)} ovos`+
+      (p.erroMsg?`<div class="er">Recusado: ${esc(p.erroMsg)}</div><button class="btn sec" style="min-height:42px;margin-top:8px;font-size:14px" data-desc="${esc(p.id)}">Descartar este registro</button>`:'')+`</div>`;
+  }).join(''):'<div class="vazio-l">Nenhum envio pendente.</div>';
+}
+$('#listaPend').addEventListener('click',e=>{
+  const b=e.target.closest('[data-desc]'); if(!b) return;
+  if(!confirm('Descartar este registro? Ele NÃO será enviado para a planilha.')) return;
+  store.set('fila',store.get('fila',[]).filter(x=>x.id!==b.dataset.desc)); listaPendentes(); atualizaStatus();
+});
+window.addEventListener('online',()=>{ atualizaStatus(); enviarFila(); carregarListas(); });
+window.addEventListener('offline',atualizaStatus);
+setInterval(()=>{ if(store.get('fila',[]).length) enviarFila(); },30000);
+
+/* ---------- início ---------- */
+function montaTudo(){
+  $('#data').value=S.data; $('#placa').value=S.placa; $('#carga').value=S.carga;
+  montaMotoristas(); render(); atualizaStatus();
+}
+montaTudo();
+if(!apiOk()){
+  const b=$('#bannerApi'); b.classList.remove('hide');
+  b.innerHTML='<b>Falta ligar à planilha.</b> Cole o link do Apps Script na linha <code>API_URL</code> do arquivo index.html. Enquanto isso, os registros ficam salvos só neste celular.';
+}
+carregarListas(); enviarFila();
+if('serviceWorker' in navigator && location.protocol==='https:') navigator.serviceWorker.register('sw.js').catch(()=>{});
+})();
+</script>
+</body>
+</html>
